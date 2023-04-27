@@ -1,8 +1,13 @@
 #include "InitDialog.h"
-#include "qfiledialog.h"
-#include "iACsvQTableCreator.h"
 
 #include <iALog.h>
+
+//iAobjectvis
+#include "iACsvQTableCreator.h"
+
+
+//QT
+#include "qfiledialog.h"
 
 InitDialog::InitDialog(QStringList* csvFiles)
 	: QDialog()
@@ -39,22 +44,52 @@ void InitDialog::fileDialog(QString path)
 	if (dialog.exec())
 	{
 		fileNames = dialog.selectedFiles();
-		//todo fix bug on "cancel"
 	}
 	ui.linePathEdit->setText(fileNames.first());
 
-	//todo show file in table
-	
+	displayData();
+}
 
+void InitDialog::on_tableWidget_cellClicked(int row, int column)
+{
+	headerAt = row;
+	ui.headerAtLine->setValue(headerAt);
 }
 
 void InitDialog::displayData()
 {
-	//this method shows the csv content in a table
+	QFile file(fileNames.at(0));
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		LOG(lvlError, QString("Error opening CSV file '%1'.").arg(fileNames.at(0)));
+		return;
+	}
 
-	//iACsvQTableCreator creator = new iACsvQTableCreator();
-
-	 
+	QTextStream in(&file);
+	QString curLine;
+	QTableWidget* tableWidget = ui.tableWidget;
+	tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+	uint row = 0;
+	while (!file.atEnd())
+	{
+		tableWidget->insertRow(row);
+		curLine = in.readLine();
+		QStringList values = curLine.split(',');
+		//todo trailing comma -> 1 col +
+		if (values.size() > tableWidget->columnCount())
+		{
+			tableWidget->setColumnCount(values.size());
+		}
+		uint col = 0;
+		for (const auto& value : values)
+		{
+			tableWidget->setItem(static_cast<int>(row), col, new QTableWidgetItem(value));
+			++col;
+		}
+		row++;
+	}
+	//todo 27 rows missing??
+	LOG(lvlDebug, QString("Created table with '%1' rows and '%2' columns.").arg(tableWidget->rowCount()).arg(tableWidget->columnCount()));
 }
 
 void InitDialog::accept()
@@ -72,9 +107,10 @@ void InitDialog::accept()
 void InitDialog::on_headerAtLine_valueChanged()
 {
 	headerAt = ui.headerAtLine->value();
+	ui.tableWidget->selectRow(headerAt);
 }
 
-//todo check if header matches var count
+//todo check if header matches var count of data
 bool InitDialog::validateData()
 {
 	QString header;

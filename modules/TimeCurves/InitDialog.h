@@ -18,11 +18,15 @@ private:
 	Ui::InitDialogClass ui;
 	QStringList fileNames;
 	int headerAt;
+	QStringList headers;
 
 	private slots:
 		void on_chooseFileButton_clicked();
 		void on_linePathEdit_returnPressed();
 		void fileDialog(QString path);
+		void on_tableWidget_cellClicked(int row, int column);
+
+		//this method shows the csv content in a table
 		void displayData();
 		void accept();
 

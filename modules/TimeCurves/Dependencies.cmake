@@ -4,14 +4,16 @@ set(TAPKEE_INCLUDE_DIR
 	PATH
 	"Path to tapkee include directory"
 )
-#set(TAPKEE_EIGEN_INCLUDE_DIR
-#	"${TAPKEE_EIGEN_INCLUDE_DIR}"
-#	CACHE
-#	STRING
-#	"Path to tapkee eigen include directory"
-#)
+set(TAPKEE_EIGEN_INCLUDE_FILE
+	"${TAPKEE_EIGEN_INCLUDE_FILE}"
+	CACHE
+	FILEPATH
+	"Path to tapkee eigen include file"
+)
 # make sure eigen3 is only included once
 #add_compile_definitions(TAPKEE_EIGEN_INCLUDE_FILE=<C:/Tools/eigen-3.4.0/Eigen/Eigen>)
+add_compile_definitions(TAPKEE_EIGEN_INCLUDE_FILE=${TAPKEE_EIGEN_INCLUDE_FILE})
+
 
 set(DEPENDENCIES_LIBRARIES
 	iA::guibase

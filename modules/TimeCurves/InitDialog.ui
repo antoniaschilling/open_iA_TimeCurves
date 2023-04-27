@@ -23,15 +23,32 @@
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <item row="3" column="0">
+     <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QLineEdit" name="linePathEdit"/>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="chooseFileButton">
+       <widget class="QPushButton" name="acceptButton">
         <property name="text">
-         <string>Choose File...</string>
+         <string>Ok</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="cancelButton">
+        <property name="text">
+         <string>Cancel</string>
         </property>
        </widget>
       </item>
@@ -64,39 +81,22 @@
       </item>
      </layout>
     </item>
-    <item row="2" column="0">
-     <widget class="QTableView" name="tableView"/>
-    </item>
-    <item row="3" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout">
+    <item row="0" column="0">
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
+       <widget class="QLineEdit" name="linePathEdit"/>
       </item>
       <item>
-       <widget class="QPushButton" name="acceptButton">
+       <widget class="QPushButton" name="chooseFileButton">
         <property name="text">
-         <string>Ok</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="cancelButton">
-        <property name="text">
-         <string>Cancel</string>
+         <string>Choose File...</string>
         </property>
        </widget>
       </item>
      </layout>
+    </item>
+    <item row="2" column="0">
+     <widget class="QTableWidget" name="tableWidget"/>
     </item>
    </layout>
   </widget>
