@@ -9,11 +9,12 @@
 //QT
 #include "qfiledialog.h"
 
-InitDialog::InitDialog(QStringList* csvFiles)
+InitDialog::InitDialog(QStringList** csvFiles, int** headerLine)
 	: QDialog()
 {
 	headerAt = 0;
-	csvFiles = &fileNames;
+	*headerLine = &headerAt;
+	*csvFiles = &fileNames;
 	ui.setupUi(this);
 }
 
@@ -47,7 +48,7 @@ void InitDialog::fileDialog(QString path)
 	}
 	ui.linePathEdit->setText(fileNames.first());
 
-	displayData();
+	//displayData();
 }
 
 void InitDialog::on_tableWidget_cellClicked(int row, int column)

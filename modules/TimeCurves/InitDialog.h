@@ -11,7 +11,7 @@ class InitDialog : public QDialog
 	Q_OBJECT
 
 public:
-	InitDialog(QStringList* csvFiles);
+	InitDialog(QStringList** csvFiles, int** headerLine);
 	~InitDialog();
 
 private:
