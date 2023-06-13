@@ -13,6 +13,8 @@ public:
 	//load data
 	bool loadData();
 
+	//Eigen::MatrixXd stdVectorToMatrix(std::vector<std::vector<double>>* data);
+
 	//save matrix to computer
 	bool downloadDistanceMatrix;
 
@@ -25,7 +27,7 @@ private:
 	//parse csv
 	void parseCsvAllToOne(std::vector<std::vector<double>>* data);
 
-	std::vector<std::vector<double>>* parseCsv(QString fileName);
+	std::vector<std::vector<double>>* parseCsvToStdVector(QString fileName);
 
 	bool mds();
 

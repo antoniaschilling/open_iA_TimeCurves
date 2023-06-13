@@ -89,8 +89,12 @@ bool iATimeCurves::loadData()
     return false;
 }
 
+//Eigen::MatrixXd iATimeCurves::stdVectorToMatrix(std::vector<std::vector<double>>* data)
+//{
+//
+//}
 
-std::vector<std::vector<double>>* iATimeCurves::parseCsv(QString fileName)
+std::vector<std::vector<double>>* iATimeCurves::parseCsvToStdVector(QString fileName)
 {
 	LOG(lvlDebug, QString("Parsing csv '%1'.").arg(fileName));
 	std::vector<std::vector<double>>* data = new std::vector<std::vector<double>>;
@@ -180,7 +184,7 @@ bool iATimeCurves::simpleMds()
 	for (int i = 0; i < csvFiles->length(); i++)
 	{
 		//parse
-		std::vector<std::vector<double>>* dataset = parseCsv(csvFiles->at(i));
+		std::vector<std::vector<double>>* dataset = parseCsvToStdVector(csvFiles->at(i));
 		int rows = dataset->size();
 		int cols = dataset->at(0).size();
 
@@ -197,6 +201,21 @@ bool iATimeCurves::simpleMds()
 		}
 		data->push_back(avgFeat);
 	}
+
+	//todo fix
+	////normalize data
+	//Eigen::MatrixXd normalized;
+	//normalized.resize(data->size(), data->at(0).size());
+	//for (int i = 0; i < data->size(); i++)
+	//{
+	//	Eigen::Map<Eigen::VectorXd> v(data->data()->data(), data[i].size());
+	//	normalized.row(i) = v;
+	//}
+	//for (int i = 0; i < normalized.size(); i++)
+	//{
+	//	normalized.col(i).normalize();
+	//}
+
 
 	//mds
 
@@ -233,7 +252,7 @@ bool iATimeCurves::simpleMds()
 	////todo: Run-Time Check Failure #3 - The variable 'distanceMatrixFromFile' is being used without being initialized.
 	//readDistanceMatrixFromFile(distanceMatrixFromFile);
 
-	QWidget* iaDistanceMatrixWidget = new iADistanceMatrix(*embedding);
+	QWidget* iaDistanceMatrixWidget = new iADistanceMatrix(*embedding, csvFiles);
 	//
 	////todo why take so long???
 	m_mainWindow->addSubWindow(iaDistanceMatrixWidget);
@@ -382,7 +401,7 @@ bool iATimeCurves::mds()
 		else
 		{
 			//parse
-			std::vector<std::vector<double>>* dataset = parseCsv(csvFiles->at(i));
+			std::vector<std::vector<double>>* dataset = parseCsvToStdVector(csvFiles->at(i));
 			//mds
 			TapkeeOutput output = tapkee::initialize()
 									  .withParameters((method = MultidimensionalScaling, target_dimension = 1))
