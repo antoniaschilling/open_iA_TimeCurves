@@ -10,12 +10,16 @@ set(TAPKEE_EIGEN_INCLUDE_FILE
 	FILEPATH
 	"Path to eigen include file for tapkee"
 )
-# make sure eigen3 is only included once
-#add_compile_definitions(TAPKEE_EIGEN_INCLUDE_FILE=<${TAPKEE_EIGEN_INCLUDE_FILE}>)
+
+if (NOT Qt${QT_VERSION_MAJOR}Charts_DIR)
+	set(Qt${QT_VERSION_MAJOR}Charts_DIR "${Qt${QT_VERSION_MAJOR}_DIR}Charts" CACHE PATH "" FORCE)
+endif()
+find_package(Qt${QT_VERSION_MAJOR}Charts REQUIRED)
 
 unset(${TAPKEE_EIGEN_INCLUDE_DIR} CACHE)
 
 set(DEPENDENCIES_LIBRARIES
+	Qt${QT_VERSION_MAJOR}::Charts
 	iA::guibase
 	iA::objectvis
 )
