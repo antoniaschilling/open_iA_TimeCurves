@@ -91,3 +91,18 @@ public:
 private:
 	QVector<QSharedPointer<iAPlot> > m_drawers;
 };
+
+class iAcharts_API iASplinePlot : public iAPlot
+{
+public:
+	iASplinePlot(QSharedPointer<iAPlotData> data, QColor const& color);
+	void setLineWidth(int width);
+
+private:
+	int m_lineWidth;
+	//smoothness todo
+	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const& xMapper,
+		iAMapper const& yMapper) const override;
+	//void drawNextSegment(QSharedPointer<iAPlotData> data, size_t index, iAMapper const& xMapper,
+	//iAMapper const& yMapper, QPainterPath& path);
+};

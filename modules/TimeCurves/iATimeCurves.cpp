@@ -10,7 +10,7 @@
 #include "InitDialog.h"
 #include "dlg_CSVInput.h"
 #include "iALog.h"
-#include "iADistanceMatrix.h"
+#include "iATimeCurvesWidget.h"
 
 
 #include "tapkee/tapkee.hpp"
@@ -252,7 +252,7 @@ bool iATimeCurves::simpleMds()
 	////todo: Run-Time Check Failure #3 - The variable 'distanceMatrixFromFile' is being used without being initialized.
 	//readDistanceMatrixFromFile(distanceMatrixFromFile);
 
-	QWidget* iaDistanceMatrixWidget = new iADistanceMatrix(*embedding, csvFiles);
+	QWidget* iaDistanceMatrixWidget = new iATimeCurvesWidget(*embedding, csvFiles);
 	//
 	////todo why take so long???
 	m_mainWindow->addSubWindow(iaDistanceMatrixWidget);
@@ -435,7 +435,7 @@ bool iATimeCurves::mds()
 	////todo: Run-Time Check Failure #3 - The variable 'distanceMatrixFromFile' is being used without being initialized.
 	//readDistanceMatrixFromFile(distanceMatrixFromFile);
 
-	//QWidget* iaDistanceMatrixWidget = new iADistanceMatrix(distanceMatrix);
+	//QWidget* iaDistanceMatrixWidget = new iATimeCurvesWidget(distanceMatrix);
 	//
 	////todo why take so long???
 	//m_mainWindow->addSubWindow(iaDistanceMatrixWidget);

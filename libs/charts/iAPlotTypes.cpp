@@ -10,6 +10,7 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QPolygon>
+#include <QVector2D>
 
 // iAPlot
 
@@ -303,4 +304,93 @@ void iAPlotCollection::setColor(QColor const & color)
 	{
 		drawer->setColor(color);
 	}
+}
+
+namespace
+{
+	//Interpolates points in data with a Bezier curve.
+	void drawNextSegment(QSharedPointer<iAPlotData> m_data, size_t index, iAMapper const& xMapper,
+		iAMapper const& yMapper, QPainterPath& path)
+	{
+		//todo make constant
+		float smoothness = 0.3;
+		QPointF currentP;
+		currentP.setX(xMapper.srcToDst(m_data->xValue(index)));
+		currentP.setY(yMapper.srcToDst(m_data->yValue(index)));
+		QPointF previousP;
+		if (index > 0)
+		{
+			previousP.setX(xMapper.srcToDst(m_data->xValue(index - 1)));
+			previousP.setY(yMapper.srcToDst(m_data->yValue(index - 1)));
+		}
+		QPointF nextP;
+		nextP.setX(xMapper.srcToDst(m_data->xValue(index + 1)));
+		nextP.setY(yMapper.srcToDst(m_data->yValue(index + 1)));
+		QPointF nextnextP;
+		if (index + 2 < m_data->valueCount())
+		{
+			nextnextP.setX(xMapper.srcToDst(m_data->xValue(index + 2)));
+			nextnextP.setY(yMapper.srcToDst(m_data->yValue(index + 2)));
+		}
+		//connect end points with a quadratic Bezier curve
+		if (index == 0)
+		{
+			path.moveTo(currentP);
+			QPointF controlP2(nextP +
+				QVector2D(currentP - nextnextP).normalized().toPointF() * QVector2D(nextP - currentP).length() *
+					smoothness);
+			path.quadTo(controlP2, nextP);
+		}
+		else if (index == m_data->valueCount() - 1 )
+		{
+			QPointF control1(currentP +
+				QVector2D(nextP - previousP).normalized().toPointF() * QVector2D(currentP - previousP).length() *
+					smoothness);
+			path.quadTo(control1, nextP);
+		}
+		//connect middle points with cubic Bezier curves
+		else
+		{
+			QVector2D direction(nextP - previousP);
+			QVector2D length(currentP - previousP);
+			//todo special case pi-1 = pi+1
+			QPointF control1(currentP + direction.normalized().toPointF() * length.length() * smoothness);
+			QPointF controlP2(nextP +
+				QVector2D(currentP - nextnextP).normalized().toPointF() * QVector2D(nextP - currentP).length() *
+					smoothness);
+			path.cubicTo(control1, controlP2, nextP);
+		}
+		return;
+	}
+}
+
+// iASplinePlot
+
+iASplinePlot::iASplinePlot(QSharedPointer<iAPlotData> data, QColor const& color) : iAPlot(data, color), m_lineWidth(1)
+{
+}
+
+void iASplinePlot::setLineWidth(int width)
+{
+	m_lineWidth = width;
+}
+
+void iASplinePlot::draw(
+	QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const& xMapper, iAMapper const& yMapper) const
+{
+	if (!m_data)
+	{
+		return;
+	}
+	QPen pen(painter.pen());
+	pen.setWidth(m_lineWidth);
+	pen.setColor(color());
+	painter.setPen(pen);
+	QPainterPath path;
+	for (size_t index = startIdx; index < endIdx; index++)
+	{
+		drawNextSegment(m_data, index, xMapper, yMapper, path);
+		
+	}
+	painter.drawPath(path);
 }
