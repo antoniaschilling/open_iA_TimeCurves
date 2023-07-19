@@ -28,14 +28,7 @@ private:
 	tapkee::DenseMatrix embedding;
 	QStringList* fileNames;
 	iAChartWidget* chartWidget;
-	/*
-	QChartView* chartView;
-	QChart* chart;
-	QHash<QXYSeries::PointConfiguration, QVariant> selectionConf;*/
-	//QHash<QXYSeries*,TimeCurve> seriesToFileNames;
 	QList<TimeCurve>* dataList;
-	void drawCustomLabels(QPainter* painter, const QList<QPointF> points, const int offset);
-	void getLabel(QXYSeries* series, QPointF position, int index);
 
 private slots:
 	void saveJson();
