@@ -8,6 +8,7 @@
 
 #include <QVector>
 #include <QSharedPointer>
+#include <QRectF>
 
 class iALookupTable;
 class iAMapper;
@@ -97,12 +98,14 @@ class iAcharts_API iASplinePlot : public iAPlot
 public:
 	iASplinePlot(QSharedPointer<iAPlotData> data, QColor const& color);
 	void setLineWidth(int width);
+	void setPointSize(int size);
+	QRectF getBoundingBox(iAMapper const& xMapper, iAMapper const& yMapper) const;
 
 private:
 	int m_lineWidth;
+	int m_pointSize;
+	QVector<QPointF>* m_points;
 	//smoothness todo
 	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const& xMapper,
 		iAMapper const& yMapper) const override;
-	//void drawNextSegment(QSharedPointer<iAPlotData> data, size_t index, iAMapper const& xMapper,
-	//iAMapper const& yMapper, QPainterPath& path);
 };

@@ -6,22 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>541</width>
-    <height>522</height>
+    <width>560</width>
+    <height>558</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="2" column="0">
-    <widget class="QCheckBox" name="showLabels">
-     <property name="text">
-      <string>Show labels</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QLabel" name="label">
@@ -41,7 +34,21 @@
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer">
+      <layout class="QHBoxLayout" name="horizontalLayout"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QCheckBox" name="showLabels">
+       <property name="text">
+        <string>Show labels</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -54,15 +61,19 @@
       </spacer>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout"/>
+      <widget class="QPushButton" name="resetViewButton">
+       <property name="text">
+        <string>Reset View</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
-   <item row="3" column="0">
+   <item>
     <widget class="QWidget" name="chartWidget" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-       <horstretch>4</horstretch>
+       <horstretch>1</horstretch>
        <verstretch>1</verstretch>
       </sizepolicy>
      </property>

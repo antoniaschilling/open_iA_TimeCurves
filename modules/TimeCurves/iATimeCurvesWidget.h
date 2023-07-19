@@ -2,6 +2,7 @@
 
 #include "tapkee/tapkee.hpp"
 #include "ui_TimeCurvesWidget.h"
+#include "iAChartWidget.h"
 
 #include <qchart.h>
 #include <qsplineseries.h>
@@ -26,9 +27,11 @@ private:
 	Ui::TimeCurvesWidgetClass ui;
 	tapkee::DenseMatrix embedding;
 	QStringList* fileNames;
+	iAChartWidget* chartWidget;
+	/*
 	QChartView* chartView;
 	QChart* chart;
-	QHash<QXYSeries::PointConfiguration, QVariant> selectionConf;
+	QHash<QXYSeries::PointConfiguration, QVariant> selectionConf;*/
 	//QHash<QXYSeries*,TimeCurve> seriesToFileNames;
 	QList<TimeCurve>* dataList;
 	void drawCustomLabels(QPainter* painter, const QList<QPointF> points, const int offset);
@@ -39,9 +42,10 @@ private slots:
 	void populateTable();
 	void addSeries(TimeCurve data);
 	void hover();
-	void pointClicked(const QPointF &point);
+	void pointClicked_old(const QPointF &point);
+	void pointClicked(double xValue, Qt::KeyboardModifiers _t2);
 	void on_showLabels_clicked(bool checked);
-
+	void on_resetViewButton_clicked(bool checked);
 	//todo void selectPoint();
 	//todo void hover()
 };
