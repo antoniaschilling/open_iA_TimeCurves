@@ -74,11 +74,6 @@ void iATimeCurvesWidget::addSeries(TimeCurve data)
 	chartWidget->update();
 }
 
-void iATimeCurvesWidget::hover()
-{
-	return;
-}
-
 void iATimeCurvesWidget::pointClicked(double xValue, Qt::KeyboardModifiers _t2)
 {
 	//todo iterate over plots
@@ -97,15 +92,6 @@ void iATimeCurvesWidget::pointClicked_old(const QPointF& point)
 	LOG(lvlDebug, QString("Point clicked: '%1', '%2'").arg(point.x()).arg(point.y()));
 	//todo selection
 	return;
-}
-
-void iATimeCurvesWidget::on_showLabels_clicked(bool checked)
-{
-	/*for (QAbstractSeries* series : chart->series())
-	{
-		qobject_cast<QXYSeries*>(series)->setPointLabelsVisible(checked);
-		drawCustomLabels(new QPainter(), qobject_cast<QXYSeries*>(series)->points(), 2);
-	}*/
 }
 
 void iATimeCurvesWidget::on_resetViewButton_clicked(bool checked)

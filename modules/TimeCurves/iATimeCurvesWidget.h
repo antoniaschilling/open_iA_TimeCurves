@@ -34,10 +34,8 @@ private slots:
 	void saveJson();
 	void populateTable();
 	void addSeries(TimeCurve data);
-	void hover();
 	void pointClicked_old(const QPointF &point);
 	void pointClicked(double xValue, Qt::KeyboardModifiers _t2);
-	void on_showLabels_clicked(bool checked);
 	void on_resetViewButton_clicked(bool checked);
 	//todo void selectPoint();
 	//todo void hover()
