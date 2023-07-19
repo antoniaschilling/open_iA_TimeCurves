@@ -7,10 +7,12 @@
 #include <qfile.h>
 
 //iA
-#include "InitDialog.h"
+#include "iAInitDialog.h"
 #include "dlg_CSVInput.h"
 #include "iALog.h"
 #include "iATimeCurvesWidget.h"
+#include "iADistanceCallback.h"
+#include "iAEuclidianDistanceCallback.h"
 
 
 #include "tapkee/tapkee.hpp"
@@ -79,7 +81,7 @@ void iATimeCurves::start(iAMainWindow* mainWindow)
 bool iATimeCurves::loadData()
 {
 	LOG(lvlInfo, "InitDialog started.");
-	InitDialog* initDialog = new InitDialog(&csvFiles, &headerLine);
+	iAInitDialog* initDialog = new iAInitDialog(&csvFiles, &headerLine);
 	if (initDialog->exec() == 1)
 	{
 		LOG(lvlDebug, QString("Got valid data with header at line: '%1'").arg(*headerLine));
@@ -146,19 +148,19 @@ std::vector<std::vector<double>>* iATimeCurves::parseCsvToStdVector(QString file
 	return data;
 }
 
-struct EuclidianDistanceCallback
-{
-	ScalarType distance(std::vector<double> a, std::vector<double> b)
-	{
-		double euclDist = 0;
-		for (int i = 0; i < a.size(); i++)
-		{
-			double d = a.at(i) - b.at(i);
-			euclDist += std::pow(d, 2);
-		}
-		return euclDist;
-	}
-};
+//struct EuclidianDistanceCallback
+//{
+//	ScalarType distance(std::vector<double> a, std::vector<double> b)
+//	{
+//		double euclDist = 0;
+//		for (int i = 0; i < a.size(); i++)
+//		{
+//			double d = a.at(i) - b.at(i);
+//			euclDist += std::pow(d, 2);
+//		}
+//		return euclDist;
+//	}
+//};
 
 //struct AverageLinkageDistanceCallback
 //{
@@ -178,7 +180,11 @@ struct EuclidianDistanceCallback
 bool iATimeCurves::simpleMds()
 {
 	std::vector<std::vector<double>>* data = new std::vector<std::vector<double>>;
-	EuclidianDistanceCallback euclidianDistance;
+	//EuclidianDistanceCallback euclidianDistance;
+	//iADistanceCallback* distance = new iAEuclidianDistanceCallback;
+	iAEuclidianDistanceCallback euclidianDistance = iAEuclidianDistanceCallback();
+
+	
 
 	//preprocess data
 	for (int i = 0; i < csvFiles->length(); i++)
@@ -386,7 +392,9 @@ void iATimeCurves::parseCsvAllToOne(std::vector<std::vector<double>>* data)
 bool iATimeCurves::mds()
 {
 	std::vector<std::vector<double>>* data = new std::vector<std::vector<double>>;
-	EuclidianDistanceCallback euclidianDistance;
+	//EuclidianDistanceCallback euclidianDistance;
+	iADistanceCallback* distanceCallback = new iAEuclidianDistanceCallback;
+	iAEuclidianDistanceCallback euclidianDistance = iAEuclidianDistanceCallback();
 
 	//compute mds for each dataset
 	for (int i = 0; i < csvFiles->length(); i++)

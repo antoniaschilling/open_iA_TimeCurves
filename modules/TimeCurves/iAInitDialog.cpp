@@ -1,4 +1,4 @@
-#include "InitDialog.h"
+#include "iAInitDialog.h"
 
 #include <iALog.h>
 
@@ -9,7 +9,7 @@
 //QT
 #include "qfiledialog.h"
 
-InitDialog::InitDialog(QStringList** csvFiles, int** headerLine)
+iAInitDialog::iAInitDialog(QStringList** csvFiles, int** headerLine)
 	: QDialog()
 {
 	headerAt = 0;
@@ -18,21 +18,21 @@ InitDialog::InitDialog(QStringList** csvFiles, int** headerLine)
 	ui.setupUi(this);
 }
 
-InitDialog::~InitDialog()
+iAInitDialog::~iAInitDialog()
 {
 }
 
-void InitDialog::on_linePathEdit_returnPressed()
+void iAInitDialog::on_linePathEdit_returnPressed()
 {
 	fileDialog(ui.linePathEdit->text());
 }
 
-void InitDialog::on_chooseFileButton_clicked()
+void iAInitDialog::on_chooseFileButton_clicked()
 {
 	fileDialog(QString());
 }
 
-void InitDialog::fileDialog(QString path)
+void iAInitDialog::fileDialog(QString path)
 {
 	QFileDialog dialog(this);
 	if (!path.isEmpty())
@@ -51,13 +51,13 @@ void InitDialog::fileDialog(QString path)
 	//displayData();
 }
 
-void InitDialog::on_tableWidget_cellClicked(int row, int column)
+void iAInitDialog::on_tableWidget_cellClicked(int row, int column)
 {
 	headerAt = row;
 	ui.headerAtLine->setValue(headerAt);
 }
 
-void InitDialog::displayData()
+void iAInitDialog::displayData()
 {
 	QFile file(fileNames.at(0));
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -93,7 +93,7 @@ void InitDialog::displayData()
 	LOG(lvlDebug, QString("Created table with '%1' rows and '%2' columns.").arg(tableWidget->rowCount()).arg(tableWidget->columnCount()));
 }
 
-void InitDialog::accept()
+void iAInitDialog::accept()
 {
 	if (!validateData())
 	{
@@ -105,14 +105,14 @@ void InitDialog::accept()
 	}
 }
 
-void InitDialog::on_headerAtLine_valueChanged()
+void iAInitDialog::on_headerAtLine_valueChanged()
 {
 	headerAt = ui.headerAtLine->value();
 	ui.tableWidget->selectRow(headerAt);
 }
 
 //todo check if header matches var count of data
-bool InitDialog::validateData()
+bool iAInitDialog::validateData()
 {
 	QString header;
 	for (int i = 0; i < fileNames.size(); i++)

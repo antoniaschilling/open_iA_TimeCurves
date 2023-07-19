@@ -6,13 +6,13 @@
 
 //#include "istream.h"
 
-class InitDialog : public QDialog
+class iAInitDialog : public QDialog
 {
 	Q_OBJECT
 
 public:
-	InitDialog(QStringList** csvFiles, int** headerLine);
-	~InitDialog();
+	iAInitDialog(QStringList** csvFiles, int** headerLine);
+	~iAInitDialog();
 
 private:
 	Ui::InitDialogClass ui;
