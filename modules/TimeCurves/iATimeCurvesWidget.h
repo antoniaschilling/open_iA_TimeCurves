@@ -29,6 +29,10 @@ private:
 	QStringList* fileNames;
 	iAChartWidget* chartWidget;
 	QList<TimeCurve>* dataList;
+	//Rotates the embedding so that start and end point are horizontally aligned
+	void rotateData(TimeCurve* timecurve);
+	//prints matrix to Log
+	void printMatrixToLog(Eigen::MatrixXd matrix);
 
 private slots:
 	void saveJson();

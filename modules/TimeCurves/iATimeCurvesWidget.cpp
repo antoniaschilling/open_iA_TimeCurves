@@ -11,6 +11,9 @@
 #include <QPushButton.h>
 #include <QRect.h>
 
+//Eigen
+//#include <Eigen/Geometry>
+
 iATimeCurvesWidget::iATimeCurvesWidget(tapkee::DenseMatrix embedding, QStringList* fileNames, QWidget* parent) :
 	embedding(embedding), fileNames(fileNames), QWidget(parent)
 {
@@ -39,10 +42,10 @@ iATimeCurvesWidget::iATimeCurvesWidget(tapkee::DenseMatrix embedding, QStringLis
 	populateTable();
 }
 
-
-
 void iATimeCurvesWidget::addSeries(TimeCurve data)
 {
+	//todo: orient & map data
+	rotateData(&data);
 	//todo plot collection
 	QSharedPointer<iAXYPlotUnorderedData> plotData =
 		iAXYPlotUnorderedData::create("name", iAValueType::Continuous, data.embedding.size(), *data.fileNames);
@@ -60,6 +63,10 @@ void iATimeCurvesWidget::addSeries(TimeCurve data)
 	//chartWidget->addPlot(QSharedPointer<iALinePlot>::create(plotDataOrdered, QColor(QColorConstants::Black)));
 	chartWidget->addPlot(splinePlot);
 	LOG(lvlDebug, QString("Chart with fullChartWidth: '%1'").arg(chartWidget->fullChartWidth()));
+	LOG(lvlDebug, QString("Added plot -> chart xbounds = ['%1','%2'] and ybounds = ['%3','%4']").arg(chartWidget->xBounds()[0])
+			.arg(chartWidget->xBounds()[1])
+			.arg(chartWidget->yBounds()[0])
+			.arg(chartWidget->yBounds()[1]));
 	//todo set custom bounds
 	//QSharedPointer<iAMapper> const xMapper = QSharedPointer<iALinearMapper>::create(
 	//	chartWidget->xBounds()[0], chartWidget->xBounds()[1], chartWidget->xBounds()[0], chartWidget->xBounds()[1]);
@@ -102,6 +109,33 @@ void iATimeCurvesWidget::on_resetViewButton_clicked(bool checked)
 void iATimeCurvesWidget::saveJson()
 {
 	return;
+}
+
+void iATimeCurvesWidget::rotateData(TimeCurve* timecurve)
+{
+	double angle;
+	LOG(lvlDebug, QString("Embedding before rotation:"));
+	printMatrixToLog(timecurve->embedding);
+	auto cols = timecurve->embedding.cols();
+	angle = std::atan2(timecurve->embedding.col(cols - 1).y() - timecurve->embedding.col(0).y(),
+		timecurve->embedding.col(cols - 1).x() - timecurve->embedding.col(0).x());
+	Eigen::Matrix data(timecurve->embedding);
+	Eigen::Rotation2D<double> rot2(-angle);
+	for (int i = 0; i < cols; i++)
+	{
+		timecurve->embedding.col(i) =  rot2.toRotationMatrix() * timecurve->embedding.col(i); 
+	}
+	LOG(lvlDebug, QString("Embedding rotated with angle: '%1'").arg(angle));
+	printMatrixToLog(timecurve->embedding);
+}
+
+void iATimeCurvesWidget::printMatrixToLog(Eigen::MatrixXd matrix)
+{
+	Eigen::IOFormat CleanFmt(4, Eigen::DontAlignCols, ",", "\n", "", "");
+	std::stringstream buffer;
+	buffer << matrix.transpose().format(CleanFmt);
+	std::string str = buffer.str();
+	LOG(lvlInfo, QString::fromStdString(str));
 }
 
 void iATimeCurvesWidget::populateTable()
