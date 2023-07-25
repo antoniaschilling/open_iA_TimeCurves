@@ -21,11 +21,10 @@ iATimeCurvesWidget::iATimeCurvesWidget(tapkee::DenseMatrix embedding, QStringLis
 
 	//chartWidget config
 	chartWidget = new iAChartWidget(this, "xLabel", "Ylabel");
-	//chartWidget->setMinimumHeight(300);
-	//todo size hint
 	chartWidget->setMinimumSize(500, 500);
 	//or setHeightForWidth dependent
-	chartWidget->setContentsMargins(10,10,10,10);
+	//constexpr QMargins(int left, int top, int right, int bottom) noexcept;
+	chartWidget->setContentsMargins(5,5,5,5);
 	chartWidget->setSizePolicy(QSizePolicy::QSizePolicy());
 	chartWidget->setYMappingMode(iAChartWidget::AxisMappingType::Linear);
 	chartWidget->showLegend(true);
@@ -33,50 +32,48 @@ iATimeCurvesWidget::iATimeCurvesWidget(tapkee::DenseMatrix embedding, QStringLis
 
 	ui.verticalLayout->addWidget(chartWidget);
 	dataList = new QList<TimeCurve>();
-	TimeCurve firstData;
-	firstData.embedding = embedding;
-	firstData.fileNames = fileNames;
+	TimeCurve firstData{embedding, fileNames, QString()};
 	addSeries(firstData);
 	connect(ui.saveButton, &QPushButton::clicked, this, &iATimeCurvesWidget::saveJson);
 	connect(chartWidget, &iAChartWidget::clicked, this, &iATimeCurvesWidget::pointClicked);
-	populateTable();
 }
 
 void iATimeCurvesWidget::addSeries(TimeCurve data)
 {
-	//todo: orient & map data
+	//todo: map data?
 	rotateData(&data);
+	populateTable(data);
 	//todo plot collection
+	if (data.name.isEmpty())
+	{
+		data.name = "TimeCurve";
+	}
 	QSharedPointer<iAXYPlotUnorderedData> plotData =
-		iAXYPlotUnorderedData::create("name", iAValueType::Continuous, data.embedding.size(), *data.fileNames);
-	//for debugging
-	QSharedPointer<iAXYPlotData> plotDataOrdered =
-		iAXYPlotData::create("name", iAValueType::Continuous, data.embedding.size());
+		iAXYPlotUnorderedData::create(data.name, iAValueType::Continuous, data.embedding.size(), *data.fileNames);
 	for (int i = 0; i < data.embedding.cols(); i++)
 	{
 		plotData.data()->addValue(data.embedding(0, i), data.embedding(1, i));
-		//todo delete
-		plotDataOrdered.data()->addValue(data.embedding(0, i), data.embedding(1, i));
 	}
-	
-	QSharedPointer<iASplinePlot> splinePlot = QSharedPointer<iASplinePlot>::create(plotData, QColor(QColorConstants::Black));
-	//chartWidget->addPlot(QSharedPointer<iALinePlot>::create(plotDataOrdered, QColor(QColorConstants::Black)));
+
+	QSharedPointer<iASplinePlot> splinePlot =
+		QSharedPointer<iASplinePlot>::create(plotData, QColor(QColorConstants::Black));
 	chartWidget->addPlot(splinePlot);
-	LOG(lvlDebug, QString("Chart with fullChartWidth: '%1'").arg(chartWidget->fullChartWidth()));
-	LOG(lvlDebug, QString("Added plot -> chart xbounds = ['%1','%2'] and ybounds = ['%3','%4']").arg(chartWidget->xBounds()[0])
+
+	//set custom bounds to display full spline
+	//todo multiple plots
+	QSharedPointer<iAMapper> const xMapper = QSharedPointer<iALinearMapper>::create(
+		chartWidget->xBounds()[0], chartWidget->xBounds()[1], chartWidget->xBounds()[0], chartWidget->xBounds()[1]);
+	QSharedPointer<iAMapper> const yMapper = QSharedPointer<iALinearMapper>::create(
+		chartWidget->yBounds()[0], chartWidget->yBounds()[1], chartWidget->yBounds()[0], chartWidget->yBounds()[1]);
+	QRectF boundingBox = splinePlot.data()->getBoundingBox(*xMapper.data(), *yMapper.data());
+	chartWidget->setXBounds(boundingBox.left(), boundingBox.right());
+	chartWidget->setYBounds(boundingBox.top(), boundingBox.bottom());
+	LOG(lvlDebug,
+		QString("Added plot -> custom chart xbounds = ['%1','%2'] and ybounds = ['%3','%4']")
+			.arg(chartWidget->xBounds()[0])
 			.arg(chartWidget->xBounds()[1])
 			.arg(chartWidget->yBounds()[0])
 			.arg(chartWidget->yBounds()[1]));
-	//todo set custom bounds
-	//QSharedPointer<iAMapper> const xMapper = QSharedPointer<iALinearMapper>::create(
-	//	chartWidget->xBounds()[0], chartWidget->xBounds()[1], chartWidget->xBounds()[0], chartWidget->xBounds()[1]);
-	//QSharedPointer<iAMapper> const yMapper = QSharedPointer<iALinearMapper>::create(
-	//	chartWidget->yBounds()[0], chartWidget->yBounds()[1], chartWidget->yBounds()[0], chartWidget->yBounds()[1]);
-	//QRectF boundingBox = splinePlot.data()->getBoundingBox(*xMapper.data(), *yMapper.data());
-	////todo multiple plots
-	//chartWidget->setXBounds(boundingBox.left(), boundingBox.right());
-	//chartWidget->setYBounds(boundingBox.bottom(), boundingBox.top());
-	//chartWidget->addPlot(splinePlot);
 
 	chartWidget->update();
 }
@@ -138,16 +135,16 @@ void iATimeCurvesWidget::printMatrixToLog(Eigen::MatrixXd matrix)
 	LOG(lvlInfo, QString::fromStdString(str));
 }
 
-void iATimeCurvesWidget::populateTable()
+void iATimeCurvesWidget::populateTable(TimeCurve data)
 {
 	QTableWidget* tableWidget = ui.tableWidget;
-	tableWidget->setRowCount(embedding.rows());
-	tableWidget->setColumnCount(embedding.cols());
-	for (int i = 0; i < embedding.rows(); i++)
+	tableWidget->setRowCount(data.embedding.rows());
+	tableWidget->setColumnCount(data.embedding.cols());
+	for (int i = 0; i < data.embedding.rows(); i++)
 	{
-		for (int j = 0; j < embedding.cols(); j++)
+		for (int j = 0; j < data.embedding.cols(); j++)
 		{
-			double value = embedding(i, j);
+			double value = data.embedding(i, j);
 			tableWidget->setItem(i, j, new QTableWidgetItem(QString::number(value)));
 		}
 	}

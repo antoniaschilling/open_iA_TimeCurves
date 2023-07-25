@@ -36,7 +36,7 @@ private:
 
 private slots:
 	void saveJson();
-	void populateTable();
+	void populateTable(TimeCurve data);
 	void addSeries(TimeCurve data);
 	void pointClicked_old(const QPointF &point);
 	void pointClicked(double xValue, Qt::KeyboardModifiers _t2);
