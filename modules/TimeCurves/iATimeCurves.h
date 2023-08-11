@@ -29,9 +29,13 @@ private:
 
 	std::vector<std::vector<double>>* parseCsvToStdVector(QString fileName);
 
+	void parseCsvToMatrix(QString fileName, Eigen::MatrixXd* matrix);
+
 	bool mds();
 
 	bool simpleMds();
+	void normalize(Eigen::MatrixXd* data);
+	void matrixToStdVector(Eigen::MatrixXd* matrix, std::vector<std::vector<double>>* vector);
 
 	//for debugging
 	bool filePath;

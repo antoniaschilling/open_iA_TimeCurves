@@ -148,6 +148,67 @@ std::vector<std::vector<double>>* iATimeCurves::parseCsvToStdVector(QString file
 	return data;
 }
 
+void iATimeCurves::parseCsvToMatrix(QString fileName, Eigen::MatrixXd* matrix)
+{
+	LOG(lvlDebug, QString("Parsing csv '%1'.").arg(fileName));
+	std::vector<std::vector<double>>* data = new std::vector<std::vector<double>>;
+	uint rows = 0;
+
+	QFile file(fileName);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		LOG(lvlError, QString("Error opening CSV file '%1'.").arg(csvFiles->at(0)));
+	}
+	QTextStream in(&file);
+	QString curLine;
+	std::vector<double> buff;
+	int line = 0;
+	int varCount;
+	while (!file.atEnd())
+	{
+		curLine = in.readLine();
+		if (line == *headerLine)
+		{
+			varCount = curLine.split(',').length();
+		}
+		if (line > *headerLine)
+		{
+			QStringList values = curLine.split(',');
+			//todo trailing comma -> 1 col +
+			int cols = 0;
+			for (const auto& value : values)
+			{
+				buff.push_back(value.toDouble());
+				++cols;
+			}
+			if (buff.size() == varCount)
+			{
+				data->push_back(buff);
+				rows++;
+			}
+			else
+			{
+				LOG(lvlInfo, QString("Row discarded, col number did noch match cols of header at  row '%2'").arg(line));
+			}
+		}
+
+		buff.clear();
+		line++;
+	}
+	matrix->resize(data->size(), data->at(0).size());
+
+	int cols = data->at(0).size();
+	for (int i = 0; i < data->size(); i++)
+	{
+		std::vector<double> stdVector(data->at(i));
+		Eigen::Map<Eigen::VectorXd> v(stdVector.data(), cols);
+		matrix->row(i) = v;
+	}
+
+	LOG(lvlDebug, QString("Parsed data to matrix with '%1' rows and '%2' columns.").arg(matrix->rows()).arg(matrix->cols()));
+	return;
+}
+
 //struct EuclidianDistanceCallback
 //{
 //	ScalarType distance(std::vector<double> a, std::vector<double> b)
@@ -180,51 +241,27 @@ std::vector<std::vector<double>>* iATimeCurves::parseCsvToStdVector(QString file
 bool iATimeCurves::simpleMds()
 {
 	std::vector<std::vector<double>>* data = new std::vector<std::vector<double>>;
-	//EuclidianDistanceCallback euclidianDistance;
-	//iADistanceCallback* distance = new iAEuclidianDistanceCallback;
+	Eigen::MatrixXd dataMatrix;
 	iAEuclidianDistanceCallback euclidianDistance = iAEuclidianDistanceCallback();
-
 	
-
 	//preprocess data
 	for (int i = 0; i < csvFiles->length(); i++)
 	{
-		//parse
-		std::vector<std::vector<double>>* dataset = parseCsvToStdVector(csvFiles->at(i));
-		int rows = dataset->size();
-		int cols = dataset->at(0).size();
-
+		//parse csv-files
+		Eigen::MatrixXd* dataset = new Eigen::MatrixXd();
+		parseCsvToMatrix(csvFiles->at(i), dataset);
+		int cols = dataset->cols();
+		//resize doesn't change matrix content (unless rows and cols change)
+		dataMatrix.resize(csvFiles->length(), cols);
 		//compute average feature
-		std::vector<double> avgFeat(cols);
-		for (int col = 0; col < cols; col++)
-		{
-			double avg = 0;
-			for (int row = 0; row < rows; row++)
-			{
-				avg += dataset->at(row).at(col);
-			}
-			avgFeat[col] = avg / rows;
-		}
-		data->push_back(avgFeat);
+		dataMatrix.row(i) = dataset->colwise().mean();
 	}
 
-	//todo fix
-	////normalize data
-	//Eigen::MatrixXd normalized;
-	//normalized.resize(data->size(), data->at(0).size());
-	//for (int i = 0; i < data->size(); i++)
-	//{
-	//	Eigen::Map<Eigen::VectorXd> v(data->data()->data(), data[i].size());
-	//	normalized.row(i) = v;
-	//}
-	//for (int i = 0; i < normalized.size(); i++)
-	//{
-	//	normalized.col(i).normalize();
-	//}
-
+	//normalize data
+	normalize(&dataMatrix);
 
 	//mds
-
+	matrixToStdVector(&dataMatrix, data);
 	DenseMatrix* embedding = new DenseMatrix;
 	if (precomputedMDS)
 	{
@@ -241,6 +278,10 @@ bool iATimeCurves::simpleMds()
 								  .withParameters((method = MultidimensionalScaling, target_dimension = 2))
 								  .withDistance(euclidianDistance)
 								  .embedUsing(*data);
+		/*TapkeeOutput output = tapkee::initialize()
+								  .withParameters((method = MultidimensionalScaling, target_dimension = 2))
+								  .withDistance(euclidianDistance)
+								  .embedUsing(dataMatrix.rowwise());*/
 		*embedding = output.embedding.transpose();
 		//todo delete after debugging
 		QString outfileName("C:/Users/tonik/Documents/Antonia/Informatik "
@@ -267,6 +308,19 @@ bool iATimeCurves::simpleMds()
 	return false;
 }
 
+void iATimeCurves::normalize(Eigen::MatrixXd* data)
+{
+	data->colwise().normalize();
+}
+
+void iATimeCurves::matrixToStdVector(Eigen::MatrixXd* matrix, std::vector<std::vector<double>>* vector)
+{
+	for (int i = 0; i < matrix->rows(); i++)
+	{
+		std::vector<double> v(matrix->row(i).data(), matrix->row(i).data() + matrix->row(i).cols());
+		vector->push_back(v);
+	}
+}
 
 void iATimeCurves::printTapkeeOutput(TapkeeOutput output, QString fileName)
 {
