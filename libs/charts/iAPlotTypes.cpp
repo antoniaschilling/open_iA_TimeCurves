@@ -6,6 +6,7 @@
 #include "iALookupTable.h"
 #include "iAMapper.h"
 #include "iAPlotData.h"
+#include "iAColorTheme.h"
 
 #include <QPainter>
 #include <QPainterPath>
@@ -333,6 +334,7 @@ namespace
 		{
 			nextnextP.setX(xMapper.srcToDst(m_data->xValue(index + 2)));
 			nextnextP.setY(yMapper.srcToDst(m_data->yValue(index + 2)));
+			m_points->data()[index + 2] = nextnextP;
 		}
 		//connect end points with a quadratic Bezier curve
 		if (index == 0)
@@ -370,10 +372,9 @@ namespace
 // iASplinePlot
 
 iASplinePlot::iASplinePlot(QSharedPointer<iAPlotData> data, QColor const& color) :
-	iAPlot(data, color), m_lineWidth(1), m_pointSize(5)
+	iAPlot(data, color), m_lineWidth(0), m_pointSize(6)
 {
 	m_points = new QList<QPointF>(data.data()->valueCount());
-
 }
 
 void iASplinePlot::setLineWidth(int width)
@@ -393,6 +394,12 @@ QRectF iASplinePlot::getBoundingBox(iAMapper const& xMapper, iAMapper const& yMa
 	{
 		drawNextSegment(m_data, index, xMapper, yMapper, path, m_points);
 	}
+	QPainter painter{};
+	painter.setPen(QPen(QColorConstants::Blue));
+	painter.drawPath(path);
+	painter.drawRect(path.boundingRect());
+	LOG(lvlDebug, QString("getBoundingBox: Bounding box right is: '%1'").arg(path.boundingRect().right()));
+	LOG(lvlDebug, QString("getBoundingBox: Bounding box left is: '%1'").arg(path.boundingRect().left()));
 	return path.boundingRect();
 }
 
@@ -406,6 +413,8 @@ void iASplinePlot::draw(
 	QPen pen(painter.pen());
 	pen.setWidth(m_lineWidth);
 	pen.setColor(color());
+	//QGradient gradient(QGradient::JuicyCake);
+	//pen.setBrush(QBrush(gradient));
 	painter.setPen(pen);
 	QPainterPath path;
 	for (size_t index = 0; index < m_data.data()->valueCount() - 1; index++)
@@ -413,12 +422,27 @@ void iASplinePlot::draw(
 		drawNextSegment(m_data, index, xMapper, yMapper, path, m_points);
 	}
 	painter.drawPath(path);
+	painter.drawRect(path.boundingRect());
 	pen.setWidth(m_pointSize);
-	pen.setColor((QColor(QColorConstants::Red)));
-	painter.setPen(pen);
-	for (QPointF p : *m_points)
+	pen.setCapStyle(Qt::RoundCap);
+	//pen.setColor((QColor(QColorConstants::Black)));
+	QColor color(QColorConstants::Red);
+	color.setAlphaF(0);
+	//painter.setPen(pen);
+	for (int i = 0; i < m_points->size(); i++)
 	{
-		painter.drawPoint(p);
+		if (m_points->size() <= 20)	//color scheme with color-brewer
+		{
+			auto colorTheme = iAColorThemeManager::instance().theme("Metro Colors (max. 20)");
+			color = colorTheme->color(i);
+		}
+		else //color scheme with opacity
+		{
+			color.setAlphaF((color.alphaF() + 1.0 / m_points->size()));
+		}
+		pen.setColor(color);
+		painter.setPen(pen);
+		painter.drawPoint(m_points->at(i));
 	}
 }
 

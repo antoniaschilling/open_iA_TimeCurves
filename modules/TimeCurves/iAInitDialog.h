@@ -11,7 +11,7 @@ class iAInitDialog : public QDialog
 	Q_OBJECT
 
 public:
-	iAInitDialog(QStringList** csvFiles, int** headerLine);
+	iAInitDialog(QStringList** csvFiles, int** headerLine, QString* name);
 	~iAInitDialog();
 
 private:
@@ -19,12 +19,16 @@ private:
 	QStringList fileNames;
 	int headerAt;
 	QStringList headers;
+	QString* m_name;
 
 	private slots:
 		void on_chooseFileButton_clicked();
 		void on_linePathEdit_returnPressed();
-		void fileDialog(QString path);
+		void on_nameEdit_editingFinished();
+		void fileDialog();
 		void on_tableWidget_cellClicked(int row, int column);
+		void dragEnterEvent(QDragEnterEvent *event);
+		void dropEvent(QDropEvent* event);
 
 		//this method shows the csv content in a table
 		void displayData();

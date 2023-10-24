@@ -8,14 +8,17 @@
 
 //QT
 #include "qfiledialog.h"
+#include <QDragEnterEvent>
+#include <qmimedata.h>
 
-iAInitDialog::iAInitDialog(QStringList** csvFiles, int** headerLine)
-	: QDialog()
+iAInitDialog::iAInitDialog(QStringList** csvFiles, int** headerLine, QString* name)
+	: m_name(name), QDialog()
 {
 	headerAt = 0;
 	*headerLine = &headerAt;
 	*csvFiles = &fileNames;
 	ui.setupUi(this);
+	setAcceptDrops(true);
 }
 
 iAInitDialog::~iAInitDialog()
@@ -24,37 +27,71 @@ iAInitDialog::~iAInitDialog()
 
 void iAInitDialog::on_linePathEdit_returnPressed()
 {
-	fileDialog(ui.linePathEdit->text());
+	fileNames = ui.linePathEdit->text().split(",");
+	displayData();
+}
+
+void iAInitDialog::on_nameEdit_editingFinished()
+{
+	*m_name = ui.nameEdit->text();
 }
 
 void iAInitDialog::on_chooseFileButton_clicked()
 {
-	fileDialog(QString());
+	fileDialog();
 }
 
-void iAInitDialog::fileDialog(QString path)
+void iAInitDialog::fileDialog()
 {
 	QFileDialog dialog(this);
-	if (!path.isEmpty())
-	{
-		dialog.setDirectory(path);
-	}
 	dialog.setFileMode(QFileDialog::ExistingFiles);
 	dialog.setNameFilter(tr("CSVs (*csv)"));
 	
 	if (dialog.exec())
 	{
+		if (dialog.selectedFiles().isEmpty())
+		{
+			return;
+		}
 		fileNames = dialog.selectedFiles();
+		ui.linePathEdit->setText(fileNames.join(","));
+		displayData();
 	}
-	ui.linePathEdit->setText(fileNames.first());
-
-	//displayData();
 }
 
 void iAInitDialog::on_tableWidget_cellClicked(int row, int column)
 {
 	headerAt = row;
 	ui.headerAtLine->setValue(headerAt);
+}
+
+void iAInitDialog::dragEnterEvent(QDragEnterEvent *event)
+{
+	if (event->mimeData()->hasFormat("text/uri-list"))
+	{
+		event->acceptProposedAction();
+	}
+}
+
+void iAInitDialog::dropEvent(QDropEvent* event)
+{
+	QList<QUrl> urls = event->mimeData()->urls();
+	if (urls.isEmpty())
+	{
+		return;
+	}
+	fileNames.clear();
+	for (QUrl url : urls)
+	{
+		if (url.fileName().split('.').last() != "csv")
+		{
+			LOG(lvlDebug, "Files have to be of type: csv.");
+			return;
+		}
+		fileNames.append(url.toLocalFile());
+	}
+	ui.linePathEdit->setText(fileNames.join(","));
+	displayData();
 }
 
 void iAInitDialog::displayData()

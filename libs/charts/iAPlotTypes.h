@@ -105,7 +105,7 @@ private:
 	int m_lineWidth;
 	int m_pointSize;
 	QVector<QPointF>* m_points;
-	//smoothness todo
+	//todo smoothness parameter
 	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const& xMapper,
 		iAMapper const& yMapper) const override;
 };

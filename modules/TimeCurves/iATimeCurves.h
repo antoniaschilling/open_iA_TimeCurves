@@ -8,10 +8,13 @@
 class iATimeCurves
 {
 public:
-	static void start(iAMainWindow* mainWindow);
+	static iATimeCurves& start(iAMainWindow* mainWindow);
 
+	void addCurve();
 	//load data
 	bool loadData();
+
+	//static int getIndex(iATimeCurvesWidget widget);
 
 	//Eigen::MatrixXd stdVectorToMatrix(std::vector<std::vector<double>>* data);
 
@@ -20,8 +23,10 @@ public:
 
 private:
 	iAMainWindow* m_mainWindow;
+	QList<QWidget*> widgets;
 	QStringList* csvFiles;
 	int* headerLine;
+	QString* name;
 	//compute distance matrix
 
 	//parse csv
@@ -30,10 +35,10 @@ private:
 	std::vector<std::vector<double>>* parseCsvToStdVector(QString fileName);
 
 	void parseCsvToMatrix(QString fileName, Eigen::MatrixXd* matrix);
-
+	//todo
 	bool mds();
 
-	bool simpleMds();
+	tapkee::DenseMatrix* simpleMds();
 	void normalize(Eigen::MatrixXd* data);
 	void matrixToStdVector(Eigen::MatrixXd* matrix, std::vector<std::vector<double>>* vector);
 

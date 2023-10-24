@@ -19,71 +19,91 @@
 
 using namespace tapkee;
 
-void iATimeCurves::start(iAMainWindow* mainWindow)
+iATimeCurves& iATimeCurves::start(iAMainWindow* mainWindow)
 {
 	iATimeCurves timeCurves{};
 	timeCurves.headerLine = new int;
 	timeCurves.csvFiles = new QStringList;
+	timeCurves.name = new QString;
 	timeCurves.m_mainWindow = mainWindow;
+	timeCurves.widgets;
 
 	//for faster debugging:
 	timeCurves.filePath = true;
 	timeCurves.precomputedFVs = false;
 	timeCurves.precomputedMDS = false;
 
-	if (timeCurves.filePath)
+	timeCurves.addCurve();
+	return timeCurves;
+}
+
+void iATimeCurves::addCurve()
+{
+	//initdialog
+
+	if (filePath)
 	{
-		QStringList list = {
-			"C:/Users/tonik/Documents/Antonia/Informatik Bachelor/22_23WiSe/Bachelorarbeit/ExampleData/"
+		QStringList list = {"C:/Users/tonik/Documents/Antonia/Informatik Bachelor/22_23WiSe/Bachelorarbeit/ExampleData/"
 							"CR-PPsGF24-0deg-6-2um-0N-BHC8_16bit_1579x1092x1651_ROI-TM_Rev10b.csv",
 			"C:/Users/tonik/Documents/Antonia/Informatik "
-		"Bachelor/22_23WiSe/Bachelorarbeit/ExampleData/"
-		"CR-PPsGF24-0deg-6-2um-132N-BHC8_16bit_1579x1092x1651_ROI-TM_Rev10b.csv",
-		"C:/Users/tonik/Documents/Antonia/Informatik "
-		"Bachelor/22_23WiSe/Bachelorarbeit/ExampleData/"
-		"CR-PPsGF24-0deg-6-2um-228N-BHC8_16bit_1579x1092x1651_ROI-TM_Rev10b.csv",
-		"C:/Users/tonik/Documents/Antonia/Informatik "
-		"Bachelor/22_23WiSe/Bachelorarbeit/ExampleData/"
-		"CR-PPsGF24-0deg-6-2um-263N-BHC8_16bit_1579x1092x1651_ROI-TM_Rev10b.csv",
-		"C:/Users/tonik/Documents/Antonia/Informatik "
-		"Bachelor/22_23WiSe/Bachelorarbeit/ExampleData/"
-		"CR-PPsGF24-0deg-6-2um-299N-BHC8_16bit_1579x1092x1651_ROI-TM_Rev10b.csv",
-		"C:/Users/tonik/Documents/Antonia/Informatik "
-		"Bachelor/22_23WiSe/Bachelorarbeit/ExampleData/"
-		"CR-PPsGF24-0deg-6-2um-334N-BHC8_16bit_1579x1092x1651_ROI-TM_Rev10b.csv",
-		"C:/Users/tonik/Documents/Antonia/Informatik "
-		"Bachelor/22_23WiSe/Bachelorarbeit/ExampleData/"
-		"CR-PPsGF24-0deg-6-2um-369N-BHC8_16bit_1579x1092x1651_ROI-TM_Rev10b.csv"
-			,
+			"Bachelor/22_23WiSe/Bachelorarbeit/ExampleData/"
+			"CR-PPsGF24-0deg-6-2um-132N-BHC8_16bit_1579x1092x1651_ROI-TM_Rev10b.csv",
 			"C:/Users/tonik/Documents/Antonia/Informatik "
 			"Bachelor/22_23WiSe/Bachelorarbeit/ExampleData/"
-			"CR-PPsGF24-0deg-6-2um-404N-BHC8_16bit_1579x1092x1651_ROI-TM_Rev10b.csv"
-		};
-		*timeCurves.csvFiles = list;
+			"CR-PPsGF24-0deg-6-2um-228N-BHC8_16bit_1579x1092x1651_ROI-TM_Rev10b.csv",
+			"C:/Users/tonik/Documents/Antonia/Informatik "
+			"Bachelor/22_23WiSe/Bachelorarbeit/ExampleData/"
+			"CR-PPsGF24-0deg-6-2um-263N-BHC8_16bit_1579x1092x1651_ROI-TM_Rev10b.csv",
+			"C:/Users/tonik/Documents/Antonia/Informatik "
+			"Bachelor/22_23WiSe/Bachelorarbeit/ExampleData/"
+			"CR-PPsGF24-0deg-6-2um-299N-BHC8_16bit_1579x1092x1651_ROI-TM_Rev10b.csv",
+			"C:/Users/tonik/Documents/Antonia/Informatik "
+			"Bachelor/22_23WiSe/Bachelorarbeit/ExampleData/"
+			"CR-PPsGF24-0deg-6-2um-334N-BHC8_16bit_1579x1092x1651_ROI-TM_Rev10b.csv",
+			"C:/Users/tonik/Documents/Antonia/Informatik "
+			"Bachelor/22_23WiSe/Bachelorarbeit/ExampleData/"
+			"CR-PPsGF24-0deg-6-2um-369N-BHC8_16bit_1579x1092x1651_ROI-TM_Rev10b.csv",
+			"C:/Users/tonik/Documents/Antonia/Informatik "
+			"Bachelor/22_23WiSe/Bachelorarbeit/ExampleData/"
+			"CR-PPsGF24-0deg-6-2um-404N-BHC8_16bit_1579x1092x1651_ROI-TM_Rev10b.csv"};
+		*csvFiles = list;
 		int x = 4;
-		*timeCurves.headerLine = x;
+		*headerLine = x;
 	}
 	else
 	{
-		if (!timeCurves.loadData())
+		if (!loadData())
 		{
 			return;
 		}
 	}
 
 	//do mds
-	timeCurves.simpleMds();
+
+	DenseMatrix* embedding = simpleMds();
+	TimeCurve data{*embedding, csvFiles, *name};
+	QWidget* iaDistanceMatrixWidget = new iATimeCurvesWidget(data, this, m_mainWindow);
+	////todo why take so long???
+	m_mainWindow->addSubWindow(iaDistanceMatrixWidget);
+	widgets.append(iaDistanceMatrixWidget);
+	iaDistanceMatrixWidget->show();
 
 	//make curve
-
+	//parse
+	//addwidget
 }
 
 bool iATimeCurves::loadData()
 {
 	LOG(lvlInfo, "InitDialog started.");
-	iAInitDialog* initDialog = new iAInitDialog(&csvFiles, &headerLine);
+	iAInitDialog* initDialog = new iAInitDialog(&csvFiles, &headerLine, name);
 	if (initDialog->exec() == 1)
 	{
+		if (name->isEmpty())
+		{
+			*name = "TimeCurve" + widgets.size();
+		}
+		LOG(lvlDebug, QString("Got valid data with name: '%1'").arg(*name));
 		LOG(lvlDebug, QString("Got valid data with header at line: '%1'").arg(*headerLine));
 		LOG(lvlDebug, QString("Got valid data with csvFiles: '%1'").arg(csvFiles->at(0)));
 		return true;
@@ -238,7 +258,7 @@ void iATimeCurves::parseCsvToMatrix(QString fileName, Eigen::MatrixXd* matrix)
 //	}
 //};
 
-bool iATimeCurves::simpleMds()
+tapkee::DenseMatrix* iATimeCurves::simpleMds()
 {
 	std::vector<std::vector<double>>* data = new std::vector<std::vector<double>>;
 	Eigen::MatrixXd dataMatrix;
@@ -299,13 +319,7 @@ bool iATimeCurves::simpleMds()
 	////todo: Run-Time Check Failure #3 - The variable 'distanceMatrixFromFile' is being used without being initialized.
 	//readDistanceMatrixFromFile(distanceMatrixFromFile);
 
-	QWidget* iaDistanceMatrixWidget = new iATimeCurvesWidget(*embedding, csvFiles);
-	//
-	////todo why take so long???
-	m_mainWindow->addSubWindow(iaDistanceMatrixWidget);
-	iaDistanceMatrixWidget->show();
-
-	return false;
+	return embedding;
 }
 
 void iATimeCurves::normalize(Eigen::MatrixXd* data)
@@ -390,7 +404,6 @@ void iATimeCurves::readDistanceMatrixFromFile(DenseSymmetricMatrix* distanceMatr
 	LOG(lvlDebug, QString("Read file to distance matrix with '%1' rows and '%2' columns.").arg(rows).arg(cols));
 	return;
 }
-
 
 void iATimeCurves::parseCsvAllToOne(std::vector<std::vector<double>>* data)
 {
