@@ -25,8 +25,13 @@ private:
 	iAMainWindow* m_mainWindow;
 	QList<QWidget*> widgets;
 	QStringList* csvFiles;
+
+	//list of possible distance functions
+	//chosen distance function
+
 	int* headerLine;
 	QString* name;
+	QString* selectedDistance;
 	//compute distance matrix
 
 	//parse csv

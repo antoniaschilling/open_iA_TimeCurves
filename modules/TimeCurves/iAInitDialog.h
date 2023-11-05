@@ -11,7 +11,7 @@ class iAInitDialog : public QDialog
 	Q_OBJECT
 
 public:
-	iAInitDialog(QStringList** csvFiles, int** headerLine, QString* name);
+	iAInitDialog(QStringList** csvFiles, int** headerLine, QString* name, QString* selectedDistance);
 	~iAInitDialog();
 
 private:
@@ -20,6 +20,9 @@ private:
 	int headerAt;
 	QStringList headers;
 	QString* m_name;
+	QString* m_selectedDistance;
+	QButtonGroup* buttonGroup;
+
 
 	private slots:
 		void on_chooseFileButton_clicked();
@@ -29,6 +32,7 @@ private:
 		void on_tableWidget_cellClicked(int row, int column);
 		void dragEnterEvent(QDragEnterEvent *event);
 		void dropEvent(QDropEvent* event);
+		void distanceToggled(QAbstractButton* button, bool checked);
 
 		//this method shows the csv content in a table
 		void displayData();

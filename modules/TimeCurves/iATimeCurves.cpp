@@ -13,6 +13,7 @@
 #include "iATimeCurvesWidget.h"
 #include "iADistanceCallback.h"
 #include "iAEuclidianDistanceCallback.h"
+#include "iACosineDistanceCallback.h"
 
 
 #include "tapkee/tapkee.hpp"
@@ -25,11 +26,12 @@ iATimeCurves& iATimeCurves::start(iAMainWindow* mainWindow)
 	timeCurves.headerLine = new int;
 	timeCurves.csvFiles = new QStringList;
 	timeCurves.name = new QString;
+	timeCurves.selectedDistance = new QString;
 	timeCurves.m_mainWindow = mainWindow;
 	timeCurves.widgets;
 
 	//for faster debugging:
-	timeCurves.filePath = true;
+	timeCurves.filePath = false;
 	timeCurves.precomputedFVs = false;
 	timeCurves.precomputedMDS = false;
 
@@ -96,7 +98,7 @@ void iATimeCurves::addCurve()
 bool iATimeCurves::loadData()
 {
 	LOG(lvlInfo, "InitDialog started.");
-	iAInitDialog* initDialog = new iAInitDialog(&csvFiles, &headerLine, name);
+	iAInitDialog* initDialog = new iAInitDialog(&csvFiles, &headerLine, name, selectedDistance);
 	if (initDialog->exec() == 1)
 	{
 		if (name->isEmpty())
@@ -262,7 +264,13 @@ tapkee::DenseMatrix* iATimeCurves::simpleMds()
 {
 	std::vector<std::vector<double>>* data = new std::vector<std::vector<double>>;
 	Eigen::MatrixXd dataMatrix;
-	iAEuclidianDistanceCallback euclidianDistance = iAEuclidianDistanceCallback();
+	//iADistanceCallback* euclCallback = new iAEuclidianDistanceCallback();
+	iAEuclidianDistanceCallback euclDistance = iAEuclidianDistanceCallback(QString("Euclidian Distance"));
+	iACosineDistanceCallback cosDistance = iACosineDistanceCallback(QString("Cosine Distance"));
+	//idea: list with concrete classes
+	
+	
+	//iAEuclidianDistanceCallback euclidianDistance = iAEuclidianDistanceCallback(QString("Euclidian distance"));
 	
 	//preprocess data
 	for (int i = 0; i < csvFiles->length(); i++)
@@ -293,11 +301,28 @@ tapkee::DenseMatrix* iATimeCurves::simpleMds()
 	}
 	else
 	{
+		TapkeeOutput output;
+
+		if (QString::compare(*selectedDistance, euclDistance.getDisplayName(), Qt::CaseSensitive) == 0)
+		{
+			output = tapkee::initialize()
+						 .withParameters((method = MultidimensionalScaling, target_dimension = 2))
+						 .withDistance(euclDistance)
+						 .embedUsing(*data);
+		}
+		else if (QString::compare(*selectedDistance, cosDistance.getDisplayName(), Qt::CaseSensitive) == 0)
+		{
+			output = tapkee::initialize()
+						 .withParameters((method = MultidimensionalScaling, target_dimension = 2))
+						 .withDistance(cosDistance)
+						 .embedUsing(*data);
+		}
+		else
+		{
+			LOG(lvlInfo, QString("Distance function '%1' not known").arg(*selectedDistance));
+		}
 		//mds
-		TapkeeOutput output = tapkee::initialize()
-								  .withParameters((method = MultidimensionalScaling, target_dimension = 2))
-								  .withDistance(euclidianDistance)
-								  .embedUsing(*data);
+
 		/*TapkeeOutput output = tapkee::initialize()
 								  .withParameters((method = MultidimensionalScaling, target_dimension = 2))
 								  .withDistance(euclidianDistance)

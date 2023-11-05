@@ -10,14 +10,26 @@
 #include "qfiledialog.h"
 #include <QDragEnterEvent>
 #include <qmimedata.h>
+#include <qradiobutton.h>
+#include <qbuttongroup.h>
 
-iAInitDialog::iAInitDialog(QStringList** csvFiles, int** headerLine, QString* name)
-	: m_name(name), QDialog()
+iAInitDialog::iAInitDialog(QStringList** csvFiles, int** headerLine, QString* name, QString* selectedDistance)
+	: m_name(name), m_selectedDistance(selectedDistance), QDialog()
 {
 	headerAt = 0;
 	*headerLine = &headerAt;
 	*csvFiles = &fileNames;
 	ui.setupUi(this);
+	//todo add radio button
+	buttonGroup = new QButtonGroup(this);
+	QRadioButton* radioButton1 = new QRadioButton("Cosine Distance", this);
+	QRadioButton* radioButton2 = new QRadioButton("Euclidian Distance", this);
+	buttonGroup->addButton(radioButton1);
+	buttonGroup->addButton(radioButton2);
+	ui.verticalLayout->addWidget(radioButton1);
+	ui.verticalLayout->addWidget(radioButton2);
+	connect(buttonGroup, &QButtonGroup::buttonToggled, this, &iAInitDialog::distanceToggled);
+
 	setAcceptDrops(true);
 }
 
@@ -92,6 +104,16 @@ void iAInitDialog::dropEvent(QDropEvent* event)
 	}
 	ui.linePathEdit->setText(fileNames.join(","));
 	displayData();
+}
+
+//todo refactor to buttom group select
+void iAInitDialog::distanceToggled(QAbstractButton* button, bool checked)
+{
+	if (checked)
+	{
+		LOG(lvlInfo, QString("Distance set to: '%1'").arg(button->text()));
+		*m_selectedDistance = button->text();
+	}
 }
 
 void iAInitDialog::displayData()
