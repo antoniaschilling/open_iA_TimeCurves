@@ -395,9 +395,9 @@ QRectF iASplinePlot::getBoundingBox(iAMapper const& xMapper, iAMapper const& yMa
 		drawNextSegment(m_data, index, xMapper, yMapper, path, m_points);
 	}
 	QPainter painter{};
-	painter.setPen(QPen(QColorConstants::Blue));
-	painter.drawPath(path);
-	painter.drawRect(path.boundingRect());
+	painter.setPen(QPen(QColorConstants::LightGray));
+	//painter.drawPath(path);
+	//painter.drawRect(path.boundingRect());
 	LOG(lvlDebug, QString("getBoundingBox: Bounding box right is: '%1'").arg(path.boundingRect().right()));
 	LOG(lvlDebug, QString("getBoundingBox: Bounding box left is: '%1'").arg(path.boundingRect().left()));
 	return path.boundingRect();
@@ -422,24 +422,13 @@ void iASplinePlot::draw(
 		drawNextSegment(m_data, index, xMapper, yMapper, path, m_points);
 	}
 	painter.drawPath(path);
-	painter.drawRect(path.boundingRect());
 	pen.setWidth(m_pointSize);
 	pen.setCapStyle(Qt::RoundCap);
-	//pen.setColor((QColor(QColorConstants::Black)));
-	QColor color(QColorConstants::Red);
+	QColor color = pen.color();
 	color.setAlphaF(0);
-	//painter.setPen(pen);
 	for (int i = 0; i < m_points->size(); i++)
 	{
-		if (m_points->size() <= 20)	//color scheme with color-brewer
-		{
-			auto colorTheme = iAColorThemeManager::instance().theme("Metro Colors (max. 20)");
-			color = colorTheme->color(i);
-		}
-		else //color scheme with opacity
-		{
-			color.setAlphaF((color.alphaF() + 1.0 / m_points->size()));
-		}
+		color.setAlphaF((color.alphaF() + 1.0 / m_points->size()));
 		pen.setColor(color);
 		painter.setPen(pen);
 		painter.drawPoint(m_points->at(i));

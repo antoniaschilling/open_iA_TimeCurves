@@ -4,7 +4,7 @@
 #include <iAPlotTypes.h>
 #include <iAXYPlotData.h>
 #include <iAXYPlotUnorderedData.h>
-
+#include <iAColorTheme.h>
 #include "iAMapperImpl.h"
 
 //Qt
@@ -48,10 +48,8 @@ iATimeCurvesWidget::iATimeCurvesWidget(
 
 void iATimeCurvesWidget::addSeries(TimeCurve data)
 {
-	//todo: map data?
 	rotateData(&data);
 	populateTable(data);
-	//todo plot collection
 	if (data.name.isEmpty())
 	{
 		data.name = "TimeCurve";
@@ -63,43 +61,58 @@ void iATimeCurvesWidget::addSeries(TimeCurve data)
 		plotData.data()->addValue(data.embedding(0, i), data.embedding(1, i));
 	}
 
-	QSharedPointer<iASplinePlot> splinePlot =
-		QSharedPointer<iASplinePlot>::create(plotData, QColor(QColorConstants::Black));
+	//assign color according to color scheme
+	auto colorTheme = iAColorThemeManager::instance().theme("Brewer Dark2 (max. 8)");
+	QColor plotColor = colorTheme->color(dataList->size());
+	QSharedPointer<iASplinePlot> splinePlot = QSharedPointer<iASplinePlot>::create(plotData, plotColor);
 
+	//change bounds to fit full curve
 	LOG(lvlDebug,
 		QString("Added plot -> chart xbounds = ['%1','%2'] and ybounds = ['%3','%4']")
 			.arg(chartWidget->xBounds()[0])
 			.arg(chartWidget->xBounds()[1])
 			.arg(chartWidget->yBounds()[0])
 			.arg(chartWidget->yBounds()[1]));
-	//mapper 1 -> 1 todo: make easier to read
-	QSharedPointer<iAMapper> const xMapper = QSharedPointer<iALinearMapper>::create(
-		0, 1, 0, 1);
-	//QSharedPointer<iAMapper> const xMapper = QSharedPointer<iALinearMapper>::create(
-		//chartWidget->xBounds()[0], chartWidget->xBounds()[1], chartWidget->xBounds()[0], chartWidget->xBounds()[1]);
-	QSharedPointer<iAMapper> const yMapper = QSharedPointer<iALinearMapper>::create(
-		chartWidget->yBounds()[0], chartWidget->yBounds()[1], chartWidget->yBounds()[0], chartWidget->yBounds()[1]);
-	QRectF boundingBox = splinePlot.data()->getBoundingBox(*xMapper.data(), *yMapper.data());
+	QSharedPointer<iAMapper> const mapper = QSharedPointer<iALinearMapper>::create(0, 1, 0, 1.05);
+	QRectF boundingBox = splinePlot.data()->getBoundingBox(*mapper.data(), *mapper.data());
 	LOG(lvlDebug,
-		QString("Added plot -> bounding box = ['%1','%2'] and ybounds = ['%3','%4']")
+		QString("Added plot -> bounding box =  ['%1','%2'] and ybounds = ['%3','%4']")
 			.arg(boundingBox.left())
 			.arg(boundingBox.right())
 			.arg(boundingBox.top())
 			.arg(boundingBox.bottom()));
-	chartWidget->setXBounds(boundingBox.left(), 0.002);
-	chartWidget->setYBounds(boundingBox.top(), boundingBox.bottom());
+	if (dataList->isEmpty())
+	{
+		chartWidget->setXBounds(boundingBox.left(), boundingBox.right());
+		chartWidget->setYBounds(boundingBox.top(), boundingBox.bottom());
+	}
+	else
+	{
+		if (chartWidget->xBounds()[0] > boundingBox.left())
+		{
+			chartWidget->setXBounds(boundingBox.left(), chartWidget->xBounds()[1]);
+		}
+		if (chartWidget->xBounds()[1] < boundingBox.right())
+		{
+			chartWidget->setXBounds(chartWidget->xBounds()[0], boundingBox.right());
+		}
+		if (chartWidget->yBounds()[0] > boundingBox.top())
+		{
+			chartWidget->setYBounds(boundingBox.top(), chartWidget->yBounds()[1]);
+		}
+		if (chartWidget->yBounds()[1] < boundingBox.bottom())
+		{
+			chartWidget->setYBounds(chartWidget->yBounds()[0], boundingBox.bottom());
+		}
+	}
 	LOG(lvlDebug,
 		QString("Added plot -> custom chart xbounds = ['%1','%2'] and ybounds = ['%3','%4']")
 			.arg(chartWidget->xBounds()[0])
 			.arg(chartWidget->xBounds()[1])
 			.arg(chartWidget->yBounds()[0])
 			.arg(chartWidget->yBounds()[1]));
-	chartWidget->addPlot(splinePlot);
-
-	//set custom bounds to display full spline
-	//todo multiple plots
-	//chartWidget->xMapper();
-	
+	//add plot
+	chartWidget->addPlot(splinePlot);	
 	dataList->append(data);
 	chartWidget->update();
 }
