@@ -6,6 +6,7 @@
 #include <iAXYPlotUnorderedData.h>
 #include <iAColorTheme.h>
 #include "iAMapperImpl.h"
+#include "iATimeCurveChart.h"
 
 //Qt
 #include <QPushButton.h>
@@ -24,7 +25,7 @@ iATimeCurvesWidget::iATimeCurvesWidget(
 
 	//chartWidget config
 	//todo meaningful labels
-	chartWidget = new iAChartWidget(this, "Dimension 1", "Dimension 2");
+	chartWidget = new iATimeCurveChart(this, "Dimension 1", "Dimension 2");
 	chartWidget->setMinimumSize(500, 500);
 	//or setHeightForWidth dependent
 	//constexpr QMargins(int left, int top, int right, int bottom) noexcept;

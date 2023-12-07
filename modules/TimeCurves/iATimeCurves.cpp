@@ -1,6 +1,7 @@
 #include "iATimeCurves.h"
 
 #include <fstream>
+//#include <math.h>
 
 //Qt
 #include <qwidget.h>
@@ -20,6 +21,18 @@
 
 using namespace tapkee;
 
+namespace debug
+{
+	tapkee::DenseMatrix CircleEmbedding{
+		{0,1,0,-1},
+		{1,0,-1,0}
+	};
+	tapkee::DenseMatrix SineEmbedding{
+		{0, M_PI_2, 3 * M_PI_2, 2 * M_PI},
+		{0, 1, -1, 0}
+	};
+}
+
 iATimeCurves& iATimeCurves::start(iAMainWindow* mainWindow)
 {
 	iATimeCurves timeCurves{};
@@ -31,9 +44,10 @@ iATimeCurves& iATimeCurves::start(iAMainWindow* mainWindow)
 	timeCurves.widgets;
 
 	//for faster debugging:
-	timeCurves.filePath = false;
+	timeCurves.filePath = true;
 	timeCurves.precomputedFVs = false;
 	timeCurves.precomputedMDS = false;
+	timeCurves.testEmbedding = true;
 
 	timeCurves.addCurve();
 	return timeCurves;
@@ -71,6 +85,7 @@ void iATimeCurves::addCurve()
 		*csvFiles = list;
 		int x = 4;
 		*headerLine = x;
+		*selectedDistance = "Euclidian Distance";
 	}
 	else
 	{
@@ -81,8 +96,12 @@ void iATimeCurves::addCurve()
 	}
 
 	//do mds
-
 	DenseMatrix* embedding = simpleMds();
+	if (embedding->rows() == 0 && embedding->cols() == 0)
+	{
+		LOG(lvlInfo, "No embedding found.");
+		return;
+	}
 	TimeCurve data{*embedding, csvFiles, *name};
 	QWidget* iaDistanceMatrixWidget = new iATimeCurvesWidget(data, this, m_mainWindow);
 	////todo why take so long???
@@ -262,6 +281,12 @@ void iATimeCurves::parseCsvToMatrix(QString fileName, Eigen::MatrixXd* matrix)
 
 tapkee::DenseMatrix* iATimeCurves::simpleMds()
 {
+	//for debugging
+	if (testEmbedding)
+	{
+		return &debug::SineEmbedding;
+	}
+
 	std::vector<std::vector<double>>* data = new std::vector<std::vector<double>>;
 	Eigen::MatrixXd dataMatrix;
 	//iADistanceCallback* euclCallback = new iAEuclidianDistanceCallback();
@@ -320,6 +345,7 @@ tapkee::DenseMatrix* iATimeCurves::simpleMds()
 		else
 		{
 			LOG(lvlInfo, QString("Distance function '%1' not known").arg(*selectedDistance));
+			return embedding;
 		}
 		//mds
 

@@ -3,6 +3,7 @@
 #include "tapkee/tapkee.hpp"
 #include "ui_TimeCurvesWidget.h"
 #include "iAChartWidget.h"
+#include "iATimeCurveChart.h"
 #include "iATimeCurves.h"
 #include <iALog.h>
 
@@ -48,7 +49,9 @@ private:
 	iATimeCurves* m_main;
 	tapkee::DenseMatrix embedding;
 	QStringList* fileNames;
-	iAChartWidget* chartWidget;
+	//todo remove comment
+	//iAChartWidget* chartWidget;
+	iATimeCurveChart* chartWidget;
 	QList<TimeCurve>* dataList;
 	//for drag event
 	QPoint startPos;

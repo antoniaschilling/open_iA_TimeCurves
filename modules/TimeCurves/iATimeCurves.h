@@ -51,6 +51,7 @@ private:
 	bool filePath;
 	bool precomputedFVs;
 	bool precomputedMDS;
+	bool testEmbedding;
 	void printTapkeeOutput(tapkee::TapkeeOutput output, QString fileName);
 	void printTapkeeDistanceMatrix(tapkee::DenseMatrix output);
 	void readDistanceMatrixFromFile(tapkee::DenseSymmetricMatrix* distanceMatrix, QString fileName);
