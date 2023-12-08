@@ -1,14 +1,14 @@
 #include "iATimeCurveChart.h"
 
-#include <iAMathUtility.h>
-#include <iALog.h>
 #include "iAMapperImpl.h"
 #include "iAMathUtility.h"
 
-#include <QWheelEvent>
-#include <QPainter>
-#include <QApplication>
+#include <iALog.h>
+#include <iAMathUtility.h>
 
+#include <QApplication>
+#include <QPainter>
+#include <QWheelEvent>
 
 namespace
 {
@@ -62,20 +62,13 @@ namespace
 	}
 }
 
-
 void iATimeCurveChart::wheelEvent(QWheelEvent* event)
 {
-	//iAChartWidget::zoomAlongX(event->angleDelta().y(), event->position().x(), true);
-	//iAChartWidget::zoomAlongY(event->angleDelta().y(), true);
 	zoomAlongXY(event->angleDelta().y(), event->position().x(), event->position().y(), true);
 	event->accept();
 	update();
 }
 
-
-
-//combines iAChartWidget::iAChartWidget::zoomAlongX() and iAChartWidget::zoomAlongY() into one function
-//deltamode: 
 void iATimeCurveChart::zoomAlongXY(double value, int mouseX, int mouseY, bool deltaMode)
 {
 	//does not support zooming with keyboard shortcut
@@ -86,7 +79,7 @@ void iATimeCurveChart::zoomAlongXY(double value, int mouseX, int mouseY, bool de
 
 	// don't do anything if we're already at the limit
 	if ((value < 0 && m_xZoom == 1.0) || (value > 0 && dblApproxEqual(m_xZoom, maxXZoom())) ||
-		(value < 0 && m_yZoom == ZoomYMin) || (value > 0 && dblApproxEqual(m_yZoom, ZoomYMax))) 
+		(value < 0 && m_yZoom == ZoomYMin) || (value > 0 && dblApproxEqual(m_yZoom, ZoomYMax)))
 	{
 		LOG(lvlDebug, QString("Zoom at limit."));
 		return;
@@ -98,40 +91,32 @@ void iATimeCurveChart::zoomAlongXY(double value, int mouseX, int mouseY, bool de
 		{
 			value = m_yZoom * ZoomYStep;
 			value = m_xZoom * ZoomXStep;
-
 		}
 		else
 		{
 			value = m_yZoom / ZoomYStep;
 			value = m_xZoom /= ZoomXStep;
-
 		}
 	}
 	double yZoomBefore = m_yZoom;
 	double xZoomBefore = m_xZoom;
 	double yTranslationBefore = m_translationY;
 	double xShiftBefore = m_xShift;
-	double fixedYValue = yMapper().dstToSrc(chartHeight() / 2 + yTranslationBefore);
-	double fixedDataX = mouse2DataX(chartWidth()/2 - leftMargin()) + xShiftBefore;
+	double fixedYValue = mouse2DataY(chartHeight() / 2);
+		//yMapper().dstToSrc(chartHeight() / 2 + yTranslationBefore);
+	double fixedDataX = mouse2DataX(chartWidth() / 2 - leftMargin()) + xShiftBefore;
 
 	m_yZoom = clamp(ZoomYMin, ZoomYMax, value);
 	m_xZoom = clamp(ZoomXMin, ZoomXMax, value);
 
-	//limitXShift
-	//m_xShift = clamp(0.0, (xZoom() - 1) / (xZoom()) * xRange(), xShiftAfter);
-
-	//zoom to center
-	int fullChartHeight = (chartHeight() - 1) * m_yZoom;
-	m_yMapper->update(yBounds()[0], yBounds()[1], 0, fullChartHeight);
+	//zoom to center of chart
+	m_yMapper->update(yBounds()[0], yBounds()[1], 0, fullChartHeight());
 	m_xMapper->update(xBounds()[0], xBounds()[1], 0, fullChartWidth());
 
 	int yTranslationAfter = yMapper().srcToDst(fixedYValue) - chartHeight() / 2;
 	double xShiftAfter = fixedDataX - mouse2DataX((chartWidth() / 2));
 
-
-
-	//yTranslationAfter = yTranslationBefore + mouseY - chartHeight() / m_yZoom / 2;
-	//todo limit ytranslation somehow
+	//todo limit yTranslation/xShift
 	if (m_xZoom == 1 || m_yZoom == 1)
 	{
 		m_xShift = 0;
@@ -148,30 +133,36 @@ void iATimeCurveChart::zoomAlongXY(double value, int mouseX, int mouseY, bool de
 		emit axisChanged();
 	}
 	LOG(lvlDebug, QString("mousePosX: '%1', mousePosY: '%2'").arg(mouseX).arg(mouseY));
-	LOG(lvlDebug, QString("xZoomBefore: '%1', xShiftBefore: '%2'")
-		.arg(xZoomBefore)
-		.arg(xShiftBefore));
-	LOG(lvlDebug, QString("xZoomAfter:  '%1', xShiftAfter:  '%2'")
-		.arg(m_xZoom)
-		.arg(m_xShift));
-	
-	LOG(lvlDebug, QString("yZoomBefore: '%1', yTranslationBefore: '%2'")
-		.arg(yZoomBefore)
-		.arg(yTranslationBefore));
-	LOG(lvlDebug, QString("yZoomAfter:  '%1', yTranslationAfter:  '%2'")
-		.arg(m_yZoom)
-		.arg(m_translationY));
+	LOG(lvlDebug, QString("xZoomBefore: '%1', xShiftBefore: '%2'").arg(xZoomBefore).arg(xShiftBefore));
+	LOG(lvlDebug, QString("xZoomAfter:  '%1', xShiftAfter:  '%2'").arg(m_xZoom).arg(m_xShift));
+
+	LOG(lvlDebug, QString("yZoomBefore: '%1', yTranslationBefore: '%2'").arg(yZoomBefore).arg(yTranslationBefore));
+	LOG(lvlDebug, QString("yZoomAfter:  '%1', yTranslationAfter:  '%2'").arg(m_yZoom).arg(m_translationY));
 }
 
 void iATimeCurveChart::zoomAlongY(double value, bool deltaMode)
 {
-	//todo insert x variable
-	zoomAlongXY(value, 0,0, deltaMode);
+	zoomAlongXY(value, 0, 0, deltaMode);
 }
 
 void iATimeCurveChart::zoomAlongX(double value, int x, bool deltaMode)
 {
-	zoomAlongXY(value,0,0, deltaMode);
+	zoomAlongXY(value, 0, 0, deltaMode);
+}
+
+int iATimeCurveChart::data2MouseY(double dataY)
+{
+	return yMapper().srcToDst(dataY) + m_translationY;
+}
+
+double iATimeCurveChart::mouse2DataY(int mouseY)
+{
+	return yMapper().dstToSrc(mouseY + m_translationY);
+}
+
+double iATimeCurveChart::fullChartHeight() const
+{
+	return (chartHeight() - 1) * m_yZoom;
 }
 
 void iATimeCurveChart::drawPlots(QPainter& painter)
@@ -182,21 +173,6 @@ void iATimeCurveChart::drawPlots(QPainter& painter)
 }
 
 /* Y translation */
-//
-//double iATimeCurveChart::visibleYStart() const
-//{
-//	return yBounds()[0] + m_translationY;
-//}
-//
-//double iATimeCurveChart::visibleYEnd() const
-//{
-//	return visibleYStart() + xRange() /m_yZoom;
-//}
-//
-//double iATimeCurveChart::yRange() const
-//{
-//	return yBounds()[1] - yBounds()[0];
-//}
 
 void iATimeCurveChart::drawYAxis(QPainter& painter)
 {
